@@ -1,16 +1,14 @@
 from __future__ import absolute_import
-import numpy
-import sklearn.neighbors
-import sklearn.preprocessing
+import array
+import sys
 
-from ann_benchmarks.distance import metrics as pd
 from ann_benchmarks.algorithms.base import BaseANN
 
 from py4j.java_collections import ListConverter
 from py4j.java_gateway import JavaGateway
 
 class LuceneIVFFlat(BaseANN):
-    INDEX_BATCH_SIZE = 1000
+    INDEX_BATCH_SIZE = 200000
 
     def __init__(self, metric):
         if metric not in ('angular', 'euclidean'):
@@ -30,8 +28,17 @@ class LuceneIVFFlat(BaseANN):
             self.gateway.entry_point.indexBatch(start, batch)
             start = end
 
+        self.gateway.entry_point.commit()
         self.gateway.entry_point.forceMerge()
         self.gateway.entry_point.openReader()
+
+    def create_java_object(self, numpy_matrix):
+        header = array.array('i', list(numpy_matrix.shape))
+        body = array.array('f', numpy_matrix.flatten().tolist());
+        if sys.byteorder != 'big':
+            header.byteswap()
+            body.byteswap()
+        return bytearray(header.tostring() + body.tostring())
 
     def query(self, v, n):
         query_vector = self.prepare_vector(v)
@@ -45,8 +52,8 @@ class LuceneIVFFlat(BaseANN):
         return 'LuceneIVFFlat(numCentroids=4*sqrt(N), iter=10, nprobe={})'.format(self.nprobe)
 
     def prepare_vectors(self, vectors):
-        converted_vectors = [self.prepare_vector(v) for v in vectors]
-        return ListConverter().convert(converted_vectors, self.gateway._gateway_client)
+        return self.create_java_object(vectors)
 
     def prepare_vector(self, vector):
         return ListConverter().convert(vector.tolist(), self.gateway._gateway_client)
+
