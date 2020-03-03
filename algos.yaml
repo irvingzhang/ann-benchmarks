@@ -1,5 +1,23 @@
 float:
   any:
+    lucene-ivfflat:
+      docker-tag: ann-benchmarks-sklearn
+      module: ann_benchmarks.algorithms.lucene_ivf
+      constructor: LuceneIVFFlat
+      base-args: ["@metric"]
+      run-groups:
+        base:
+          args: []
+          query-args: [[16, 32, 64, 128, 256, 512, 1024]]
+    lucene-graph:
+      docker-tag: ann-benchmarks-sklearn
+      module: ann_benchmarks.algorithms.lucene
+      constructor: LuceneGraph
+      base-args: ["@metric"]
+      run-groups:
+        base:
+          args: []
+          query-args: [[10, 20, 40, 80, 120, 200, 400, 600, 800]]
     sptag:
       docker-tag: ann-benchmarks-sptag
       module: ann_benchmarks.algorithms.sptag
