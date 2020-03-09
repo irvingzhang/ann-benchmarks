@@ -10,7 +10,7 @@ class LuceneGraph(LuceneIVFFlat):
         LuceneIVFFlat.fit(self, X)
 
     def query(self, v, n):
-        query_vector = LuceneIVFFlat.prepare_vector(v)
+        query_vector = LuceneIVFFlat.prepare_vector(self, v)
         return self.gateway.entry_point.search(query_vector, n, self.ef)
 
     def set_query_arguments(self, ef):
